@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WeatherNow – City weather &amp; forecast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEEBFF;--side:#FFFFFF;--card:#FFFFFF;--card2:#E9E4FF;--ink:#1A1442;--muted:#5E5A86;--acc:#5B3FE0;--accsoft:#CFC4FF;--line:#D8D2F5;--code:#120E33;--err:#B3261E;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0D0A24;--side:#15113A;--card:#18143F;--card2:#241E58;--ink:#F1EFFF;--muted:#A59FD0;--acc:#8B6DFF;--accsoft:#3A3180;--line:#2C2663;--code:#0A0820;--err:#FF9A90}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0D0A24;--side:#15113A;--card:#18143F;--card2:#241E58;--ink:#F1EFFF;--muted:#A59FD0;--acc:#8B6DFF;--accsoft:#3A3180;--line:#2C2663;--code:#0A0820;--err:#FF9A90}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Plus Jakarta Sans",system-ui,sans-serif}
+.app{display:grid;grid-template-columns:210px 1fr;gap:20px;padding:20px;max-width:1280px;margin:0 auto}
+nav{background:var(--side);border-radius:18px;padding:22px 14px;align-self:start;position:sticky;top:20px}
+.logo{font-weight:800;letter-spacing:.02em;font-size:1.15rem;padding:0 10px 18px}
+nav button{display:flex;width:100%;gap:10px;align-items:center;padding:11px 12px;margin-bottom:6px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:inherit;font-weight:500;cursor:pointer;text-align:left}
+nav button.on{background:var(--accsoft);color:var(--ink)}
+nav button:hover:not(.on){color:var(--ink)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.top{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.top h1{font-size:1.2rem;margin:0;font-weight:700;display:flex;gap:6px;align-items:center}
+.search{flex:1;min-width:220px;display:flex;border:1.5px solid var(--acc);border-radius:30px;background:var(--card);padding:4px 4px 4px 16px}
+.search input{flex:1;border:0;background:transparent;color:var(--ink);font:inherit;outline:0;min-width:0}
+.search button,.pill{border:0;border-radius:30px;background:var(--acc);color:#fff;font:inherit;font-weight:600;padding:8px 18px;cursor:pointer}
+.pill.alt{background:var(--card);color:var(--ink);border:1px solid var(--line);padding:7px 14px;font-weight:500}
+.msg{color:var(--err);font-size:.9rem;margin:-8px 0 14px}
+.search{position:relative}
+.sug{position:absolute;left:0;right:0;top:calc(100% + 8px);background:var(--card);border:1px solid var(--line);border-radius:14px;max-height:320px;overflow-y:auto;z-index:5;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.sug button{display:flex;justify-content:space-between;gap:10px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:inherit;font-weight:500;cursor:pointer;text-align:left}
+.sug button:hover,.sug button:focus-visible{background:var(--accsoft)}
+.citygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.citybtn{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.citybtn:hover{border-color:var(--acc)}
+.citybtn>span:nth-child(2){flex:1;display:flex;flex-direction:column;min-width:0}
+.citybtn .ct{font-weight:700}
+.sortb.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.grid{display:grid;grid-template-columns:1fr 330px;gap:18px}
+.card{background:var(--card);border-radius:18px;padding:20px;min-width:0}
+.card h3{margin:0 0 10px;font-size:.95rem;font-weight:600}
+.hero{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:center}
+.big{font-size:3.4rem;font-weight:700;line-height:1.05;margin:4px 0}
+.muted{color:var(--muted);font-size:.88rem}
+.minis{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.mini{display:flex;flex-direction:column;gap:6px;min-height:120px}
+.mini .val{font-size:1.7rem;font-weight:700}
+.mini .head{display:flex;justify-content:space-between;color:var(--muted);font-size:.88rem}
+.ringwrap{display:flex;align-items:center;gap:14px}
+.fday{display:grid;grid-template-columns:1fr auto 52px;gap:10px;align-items:center;padding:10px 4px;border-top:1px solid var(--line)}
+.fday:first-of-type{border-top:0}
+.fday b{font-weight:600}
+.fday .t{font-weight:700;text-align:center}
+.outlook{background:var(--card2);border-radius:12px;padding:12px 14px;margin:0 0 12px;font-size:.9rem}
+svg{display:block}
+.view{display:none}.view.on{display:block}
+textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:12px;background:var(--code);color:#E8E4FF;padding:12px;font:.82rem/1.5 "IBM Plex Mono",monospace}
+pre{margin:0;padding:16px;background:var(--code);color:#E8E4FF;border-radius:12px;overflow-x:auto;font:.82rem/1.55 "IBM Plex Mono",monospace}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+@media(max-width:760px){.app{grid-template-columns:1fr;padding:14px}nav{position:static;display:flex;gap:6px;padding:10px;overflow-x:auto}.logo{display:none}nav button{width:auto;white-space:nowrap;margin:0}.hero{grid-template-columns:1fr}.minis{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<nav aria-label="Sections">
+  <div class="logo">WEATHERNOW</div>
+  <button class="on" data-view="dash">Dashboard</button>
+  <button data-view="all">All 32 cities</button>
+  <button data-view="paste">Use OpenWeather JSON</button>
+  <button data-view="code">Python code</button>
+</nav>
+
+<main>
+  <div class="top">
+    <h1 id="where">Chennai</h1>
+    <form class="search" id="form" role="search">
+      <input id="city" placeholder="Search 32 cities, e.g. Tiru" aria-label="City name" autocomplete="off">
+      <div class="sug" id="sug" role="listbox" hidden></div>
+      <button type="submit">Search</button>
+    </form>
+    <button class="pill alt" id="unit" aria-label="Switch temperature unit">°C</button>
+    <button class="pill alt" id="theme">Light mode</button>
+  </div>
+  <p class="msg" id="msg" role="alert" hidden></p>
+
+  <section class="view on" id="v-dash">
+    <div class="grid">
+      <div>
+        <div class="card hero">
+          <div>
+            <div id="icon"></div>
+            <div class="big" id="temp"></div>
+            <div style="font-weight:600" id="cname"></div>
+            <div class="muted" id="cond"></div>
+            <div class="muted" id="date" style="margin-top:8px"></div>
+          </div>
+          <div><h3>Highs and lows, next days</h3><div id="chart"></div></div>
+        </div>
+        <div class="minis">
+          <div class="card mini"><div class="head"><span>Wind speed</span></div><div class="val" id="wind">–</div><div class="muted" id="windn"></div></div>
+          <div class="card mini"><div class="head"><span>Chance of rain today</span><span id="rainlvl"></span></div><div class="ringwrap"><div id="ring-rain"></div></div></div>
+          <div class="card mini"><div class="head"><span>Humidity</span></div><div class="ringwrap"><div id="ring-hum"></div></div><div class="muted" id="humn"></div></div>
+          <div class="card mini"><div class="head"><span>Today’s range</span></div><div class="val" id="range"></div><div class="muted">High / low</div></div>
+        </div>
+        <p class="muted" id="source" style="margin-top:14px"></p>
+      </div>
+      <aside class="card">
+        <h3>Next days forecast</h3>
+        <div class="outlook" id="outlook"></div>
+        <div id="days"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="v-all">
+    <div class="card">
+      <h3>All 32 cities</h3>
+      <p class="muted">Tap a city to open its full weather and forecast.</p>
+      <div class="row"><span class="muted" style="align-self:center">Sort by</span><button class="pill alt sortb" data-sort="az">A–Z</button><button class="pill alt sortb" data-sort="hot">Hottest now</button><button class="pill alt sortb" data-sort="rain">Rain chance today</button></div>
+      <div class="citygrid" id="allgrid"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-paste">
+    <div class="card">
+      <h3>Show real OpenWeather data</h3>
+      <p class="muted">A published page can’t call the API itself. Call OpenWeather (the Python code does this), then paste the JSON here. The page reads it exactly like Python’s <code>response.json()</code>. It accepts the <b>Current weather</b> response (<code>/weather</code>) or the <b>5-day forecast</b> response (<code>/forecast</code>), fetched with <code>units=metric</code>.</p>
+      <textarea id="json" spellcheck="false" placeholder='{"name":"Chennai","main":{"temp":31.2,"humidity":66},"wind":{"speed":4.1},"weather":[{"main":"Clouds"}]}'></textarea>
+      <div class="row"><button class="pill" id="apply">Show on dashboard</button><button class="pill alt" id="example">Insert format example</button></div>
+      <p class="muted">The example uses made-up numbers to show the format. It is not live weather.</p>
+    </div>
+  </section>
+
+  <section class="view" id="v-code">
+    <div class="card">
+      <h3>Python app (requests + JSON, runs in the terminal)</h3>
+      <p class="muted">Get a free key at openweathermap.org, run <code>pip install requests</code>, paste your key, and run the file.</p>
+<pre>import requests
+from collections import defaultdict
+
+API_KEY = "YOUR_API_KEY"
+BASE = "https://api.openweathermap.org/data/2.5"
+
+def get(path, city):
+    r = requests.get(f"{BASE}/{path}", timeout=10,
+                     params={"q": city, "appid": API_KEY, "units": "metric"})
+    if r.status_code == 404:
+        raise SystemExit("City not found. Check the spelling.")
+    r.raise_for_status()
+    return r.json()
+
+city = input("City name: ").strip()
+now = get("weather", city)
+
+print(f"\nWeather in {now['name']}")
+print(f"Temperature : {now['main']['temp']} C")
+print(f"Humidity    : {now['main']['humidity']} %")
+print(f"Condition   : {now['weather'][0]['description'].title()}")
+print(f"Wind speed  : {round(now['wind']['speed'] * 3.6, 1)} km/h")
+
+days = defaultdict(list)
+for item in get("forecast", city)["list"]:
+    days[item["dt_txt"][:10]].append(item)
+
+print("\nNext days")
+for date, items in list(days.items())[:5]:
+    temps = [i["main"]["temp"] for i in items]
+    rain = max(i.get("pop", 0) for i in items) * 100
+    cond = items[len(items) // 2]["weather"][0]["main"]
+    print(f"{date}: {min(temps):.0f}-{max(temps):.0f} C, {cond}, rain {rain:.0f}%")</pre>
+    </div>
+  </section>
+</main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const F2C = f => (f - 32) * 5 / 9;
+const START = new Date("2026-11-04T00:00:00");
+
+// Real forecast snapshot taken 4 Nov 2026 (temperature in °F, rain chance in %)
+const SNAP = {
+  Chennai:{country:"Tamil Nadu, India",curF:88,text:"Mostly cloudy",
+    hi:[89,87.3,85.4,85.4,81.7,85.3,85.5,86],lo:[78,78.9,78.2,77.7,77.9,77.7,76.9,77],pop:[35,15,15,30,85,35,15,15]},
+  Madurai:{country:"Tamil Nadu, India",curF:92.5,text:"Cloudy",
+    hi:[92.5,90.4,86.6,87.7,86.4,87.6,88.3,88.7],lo:[76.7,76.4,75.8,76,75.6,75.6,75.3,75.4],pop:[37,45,75,75,75,20,10,45]},
+  Coimbatore:{country:"Tamil Nadu, India",curF:87.8,text:"Cloudy",
+    hi:[88.6,88.1,87.9,87.6,85.9,85.5,86.2,87],lo:[73.9,73.8,73.5,73.8,73.4,73.2,73.1,73.1],pop:[11,15,40,25,75,15,10,10]}
+};
+const add = (n, c, t, h, l, p) => SNAP[n] = {country:"Tamil Nadu, India", curF:c, text:t, hi:h, lo:l, pop:p};
+add("Tiruchirappalli",92,"Mostly cloudy",[92.2,90.6,86.9,87.7,85.3,86.4,87.8,88.2],[76.9,77,76.6,76.6,75.9,75.8,75.4,75.4],[55,45,70,65,75,20,20,45]);
+add("Salem",87.9,"Mostly cloudy",[88.2,87.9,88.4,87.9,85.6,87.2,87.7,88.5],[74.4,74,74,74.2,73.1,72.7,71.8,72.4],[31,25,45,55,75,15,5,15]);
+add("Tirunelveli",91.5,"Mostly cloudy",[91.6,89.2,85.6,85.9,84.9,86.9,88,87.9],[77.4,76.9,76.3,76.4,76.3,76,76.5,76.5],[55,15,60,50,70,30,25,45]);
+add("Erode",89.5,"Partly sunny",[91,90.2,90.2,89.4,86.7,88.7,89,89.9],[75.8,75.6,75.5,75.5,74.9,74.7,73.5,74.3],[10,15,65,65,75,15,10,15]);
+add("Vellore",87.8,"Partly sunny",[88.2,88.1,86.3,86.4,82.6,85.5,86.3,87.1],[74.2,74.5,74.5,74.2,73.4,72.6,71.2,71.5],[25,15,70,65,65,35,5,15]);
+add("Thoothukudi",88.9,"Cloudy",[89,87,85.3,84.9,83.6,85.1,85.8,85.9],[78.6,77.3,76.5,76.5,76.6,76.1,76.8,76.7],[25,15,55,70,75,60,25,45]);
+add("Thanjavur",90.6,"Partly sunny",[90.8,89.5,85.5,86.3,83.6,84.9,86.5,86.9],[77.1,76.9,76.6,76.4,75.9,75.8,75.6,75.5],[40,50,75,70,75,50,25,55]);
+add("Dindigul",90.7,"Mostly cloudy",[91,89.5,86.7,87.1,84.9,85.8,86.1,87],[74.9,74.8,74.7,74.8,74.3,73.7,73.3,73.8],[65,40,75,65,75,20,10,40]);
+add("Nagercoil",86.7,"Mostly cloudy",[87.3,89,85.1,86.4,84.9,87,86.8,86.2],[78.4,77.6,77.2,77.1,77.5,76.9,77.1,77.4],[45,30,45,45,65,45,55,65]);
+add("Tiruppur",88.7,"Mostly cloudy",[90,89.3,89.1,88.2,86.7,86.6,87.4,88.3],[74.7,74.6,74.3,74.4,73.9,73.6,72.9,73.5],[15,25,65,45,75,15,10,10]);
+add("Karur",91,"Cloudy",[92.4,90.7,89.3,88.9,86.7,87.9,89,89.4],[76.8,76.5,76.4,76.4,75.7,75.3,74.6,75.3],[35,25,65,65,75,20,10,15]);
+add("Kanchipuram",89.2,"Mostly cloudy",[89.6,88.5,86.1,86,82.5,86.1,87,87.4],[76.6,76.9,76.4,76.1,75.6,75.3,74.7,74.5],[29,20,65,65,75,15,5,15]);
+add("Cuddalore",88.2,"Scattered thunderstorms",[89.2,88.4,85.8,85.7,82.6,85.1,85.5,85.9],[79.1,79.4,77.8,77.4,76.8,76.9,76.5,76.8],[35,15,20,35,75,75,55,15]);
+add("Tiruvannamalai",89,"Partly sunny",[89.4,89.1,86.9,87,83.9,86.6,87.2,87.7],[75.1,75.6,75.2,74.9,74.4,73.9,73.1,73.3],[50,15,65,45,75,15,10,15]);
+add("Namakkal",90.1,"Cloudy",[90.6,89.5,89,88.8,86.2,88,88.6,89.4],[75.8,75.3,75.4,75.6,74.6,74.3,73.4,74.2],[32,15,65,65,75,15,10,15]);
+add("Virudhunagar",92.7,"Cloudy",[92.8,90.4,86.1,87.5,86.3,88,88.4,89],[76.9,76.7,76.2,76.1,76,75.9,75.8,76.1],[33,50,75,75,75,30,10,45]);
+add("Ramanathapuram",88.2,"Cloudy",[88.6,87.4,85.1,84.8,82.7,84.2,85.1,85],[78.6,78.3,77.1,76.9,77,76.9,77.3,77.2],[65,20,45,65,75,70,45,75]);
+add("Pudukkottai",91.1,"Cloudy",[91.1,89.2,84.9,86.3,84.3,85.6,86.9,87],[76.8,76.7,76.2,76,75.6,75.5,75.2,75.3],[50,45,70,60,75,20,45,55]);
+add("Nagapattinam",86.6,"Mostly sunny",[87,86.2,84.1,84.3,81.8,82.5,83.2,83.6],[81.5,81.5,79.5,79.2,78.2,78.3,78.7,79.1],[25,15,15,30,75,75,75,70]);
+add("Krishnagiri",85.2,"Mostly cloudy",[85.7,86.4,85.9,85.5,82.5,83.6,84.3,85.5],[72.6,72.8,72.2,72.5,71.6,70.5,68.9,69.2],[35,15,45,20,40,15,5,0]);
+add("Dharmapuri",86.3,"Mostly cloudy",[86.8,87.3,87,86.5,84.1,84.7,85,86.2],[73,73.2,73.2,73.3,72,70.9,69.6,69.8],[27,15,30,30,55,10,5,5]);
+add("Theni",91.4,"Mostly cloudy",[91.7,90.2,87.2,87.9,85.9,87.5,87.8,88.4],[74.5,74,73.9,73.8,73.4,73.4,72.9,73.5],[36,55,75,75,75,20,10,15]);
+add("Ooty",69.3,"Light rain",[69.7,69.5,69.9,70.4,68.9,68.7,69,69.6],[60,60.4,59.7,60.4,59.5,58.5,57.3,56.8],[40,40,15,30,75,15,10,15]);
+add("Villupuram",89.8,"Partly sunny",[90,89.8,86.6,86.8,83.7,86.5,87.2,87.7],[77.4,77.4,76.9,76.6,76.1,75.8,75.4,75.3],[65,20,55,50,75,15,15,15]);
+add("Tenkasi",91.6,"Partly sunny",[91.7,89.9,85.6,86.5,85.6,87.3,87.6,88.2],[76.4,75.8,75.3,75.4,75.1,75,75.1,75.1],[26,35,55,70,75,30,65,75]);
+add("Ariyalur",90.7,"Mostly cloudy",[90.7,89.5,86.2,86.6,83.4,85.5,87.1,87.1],[77,77.1,76.6,76.3,75.8,75.7,75.4,75.4],[60,20,55,60,75,20,10,20]);
+add("Perambalur",90.8,"Mostly cloudy",[91.1,89.9,87.2,87.6,84.4,86,87.4,87.7],[76.3,76.5,76,76,75.3,75.3,75,75.1],[75,30,65,55,75,20,10,35]);
+add("Mayiladuthurai",89,"Mostly cloudy",[90.3,89.2,85.7,85.3,81.9,84,85.4,85.4],[77.9,78,77.1,76.7,75.9,76.1,75.8,76.2],[70,15,25,45,75,75,65,55]);
+add("Kodaikanal",72.3,"Light rain",[72.8,71.4,71,71.4,69.7,70,69.6,70.2],[62.8,62.6,62.8,62.7,62.4,61.7,61,61.3],[48,45,75,70,75,20,15,15]);
+function fromSnap(name){
+  const s = SNAP[name];
+  return {name, country:s.country, cur:F2C(s.curF), text:s.text, humidity:null, wind:null,
+    source:"Source: forecast snapshot taken 4 Nov 2026. Humidity and wind come from OpenWeather JSON (see “Use OpenWeather JSON”).",
+    days:s.hi.map((h,i)=>{const d=new Date(START);d.setDate(d.getDate()+i);return {date:d,hi:F2C(h),lo:F2C(s.lo[i]),pop:s.pop[i]};})};
+}
+let S = fromSnap("Chennai"), unit = "C";
+const T = c => unit === "C" ? Math.round(c) + "°C" : Math.round(c * 9 / 5 + 32) + "°F";
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dayName = (d, long) => d.toLocaleDateString("en-IN", {weekday: long ? "long" : "short"});
+const dm = d => d.toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+
+function kindText(t){
+  t = (t || "").toLowerCase();
+  if (/thunder|storm/.test(t)) return "storm";
+  if (/rain|drizzle|shower/.test(t)) return "rain";
+  if (/partly|few|scattered/.test(t)) return "part";
+  if (/clear|sun/.test(t)) return "sun";
+  if (/few|scattered|partly/.test(t)) return "part";
+  return "cloud";
+}
+const kindPop = p => p >= 60 ? "rain" : p >= 30 ? "cloud" : "part";
+const labelPop = p => p >= 60 ? "Rain likely" : p >= 30 ? "Chance of showers" : "Mostly dry";
+
+function icon(k, n){
+  const cloud = (x, y, f) => `<path transform="translate(${x} ${y})" d="M18 44a10 10 0 0 1 1-20 14 14 0 0 1 27 4 8 8 0 0 1-2 16z" fill="${f}"/>`;
+  const sun = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#FFC53D"/>`;
+  const drops = `<path d="M24 52l-3 7M34 52l-3 7M44 52l-3 7" stroke="#6CB6FF" stroke-width="3" stroke-linecap="round"/>`;
+  const bolt = `<path d="M36 46l-8 12h6l-3 8 11-14h-6z" fill="#FFC53D"/>`;
+  const body = {sun:sun(32,32,14), part:sun(24,22,11)+cloud(2,-2,"#D9D6EE"), cloud:cloud(0,-2,"#CFCBE6"),
+    rain:cloud(0,-6,"#BDB8DC")+drops, storm:cloud(0,-8,"#9F99C8")+bolt}[k];
+  return `<svg width="${n}" height="${n}" viewBox="0 0 64 70" aria-hidden="true">${body}</svg>`;
+}
+function ring(pct, label, id){
+  if (pct == null) return `<div class="val" style="font-size:1.7rem;font-weight:700">–</div>`;
+  const r = 30, c = 2 * Math.PI * r, o = c * (1 - Math.min(pct, 100) / 100);
+  return `<svg width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="${label} ${pct}%">
+    <circle cx="42" cy="42" r="${r}" fill="none" stroke="var(--accsoft)" stroke-width="8"/>
+    <circle cx="42" cy="42" r="${r}" fill="none" stroke="var(--acc)" stroke-width="8" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${o}" transform="rotate(-90 42 42)"/>
+    <text x="42" y="47" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">${Math.round(pct)}%</text></svg>`;
+}
+function chart(days){
+  if (days.length < 2) return `<p class="muted">No forecast loaded. Paste the 5-day forecast JSON to see the chart.</p>`;
+  const W = 520, H = 190, px = 28, top = 30, bot = 150;
+  const all = days.flatMap(d => [d.hi, d.lo]), mn = Math.min(...all) - 1, mx = Math.max(...all) + 1;
+  const X = i => px + i * (W - 2 * px) / (days.length - 1), Y = v => bot - (v - mn) / (mx - mn) * (bot - top);
+  const hi = days.map((d, i) => `${X(i)},${Y(d.hi)}`), lo = days.map((d, i) => `${X(i)},${Y(d.lo)}`);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Daily high and low temperatures">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".55"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="${X(0)},${bot} ${hi.join(" ")} ${X(days.length - 1)},${bot}" fill="url(#g)"/>
+    <polyline points="${hi.join(" ")}" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round"/>
+    <polyline points="${lo.join(" ")}" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 4"/>
+    ${days.map((d, i) => `<circle cx="${X(i)}" cy="${Y(d.hi)}" r="4" fill="var(--acc)"/>
+      <text x="${X(i)}" y="${Y(d.hi) - 10}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">${T(d.hi)}</text>
+      <text x="${X(i)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="var(--muted)">${dayName(d.date)}</text>`).join("")}
+  </svg><p class="muted" style="margin:4px 0 0">Solid line: daily high. Dashed line: daily low.</p>`;
+}
+function outlook(days){
+  if (!days.length) return "No forecast loaded yet.";
+  const wet = days.reduce((a, b) => b.pop > a.pop ? b : a), hot = days.reduce((a, b) => b.hi > a.hi ? b : a);
+  const half = Math.floor(days.length / 2);
+  const avg = a => a.reduce((s, d) => s + d.hi, 0) / (a.length || 1);
+  const diff = avg(days.slice(half)) - avg(days.slice(0, half));
+  const trend = Math.abs(diff) < 1 ? "Temperatures stay steady." : diff > 0 ? "It gets warmer later in the period." : "It cools down later in the period.";
+  const rain = wet.pop >= 40 ? `Rain is most likely on ${dayName(wet.date, true)} (${Math.round(wet.pop)}%).` : "Mostly dry days ahead.";
+  return `${rain} Hottest day: ${dayName(hot.date, true)} at ${T(hot.hi)}. ${trend}`;
+}
+
+function render(){
+  $("where").textContent = S.name;
+  $("cname").textContent = S.name + (S.country ? ", " + S.country : "");
+  $("temp").textContent = T(S.cur);
+  $("cond").textContent = S.text;
+  $("icon").innerHTML = icon(kindText(S.text), 96);
+  const d0 = S.days[0];
+  $("date").textContent = d0 ? dayName(d0.date, true) + ", " + dm(d0.date) : "";
+  $("wind").textContent = S.wind == null ? "–" : S.wind.toFixed(1) + " km/h";
+  $("windn").textContent = S.wind == null ? "Paste OpenWeather JSON to fill this in." : "";
+  $("humn").textContent = S.humidity == null ? "Paste OpenWeather JSON to fill this in." : "";
+  $("ring-rain").innerHTML = ring(d0 ? d0.pop : null, "Chance of rain", "r");
+  $("rainlvl").textContent = d0 ? (d0.pop >= 60 ? "High" : d0.pop >= 30 ? "Medium" : "Low") : "";
+  $("ring-hum").innerHTML = ring(S.humidity, "Humidity", "h");
+  $("range").textContent = d0 ? T(d0.hi) + " / " + T(d0.lo) : "–";
+  $("chart").innerHTML = chart(S.days);
+  $("outlook").textContent = outlook(S.days);
+  $("days").innerHTML = S.days.map((d, i) => `<div class="fday"><div><b>${i ? dayName(d.date, true) : "Today"}</b><div class="muted">${dm(d.date)} · ${labelPop(d.pop)}, ${Math.round(d.pop)}%</div></div>
+    <div class="t">${T(d.hi)}<div class="muted" style="font-weight:400">${T(d.lo)}</div></div>${icon(kindPop(d.pop), 44)}</div>`).join("") || '<p class="muted">No forecast loaded.</p>';
+  $("source").textContent = S.source;
+  $("unit").textContent = "°" + unit;
+}
+
+function msg(t){ $("msg").hidden = !t; $("msg").textContent = t || ""; }
+
+$("form").addEventListener("submit", e => {
+  e.preventDefault();
+  const q = $("city").value.trim().toLowerCase();
+  const name = matches(q)[0];
+  if (!q) { msg("Enter a city name to search."); return; }
+  if (!name) { msg(`“${$("city").value.trim()}” isn’t one of the 32 cities here. Type a few letters (like “Tiru”) to see suggestions, or paste OpenWeather JSON for any other city.`); return; }
+  msg(""); S = fromSnap(name); render(); show("dash");
+});
+
+function matches(q){
+  q = (q || "").trim().toLowerCase();
+  const all = Object.keys(SNAP).sort();
+  if (!q) return all;
+  return [...all.filter(k => k.toLowerCase().startsWith(q)), ...all.filter(k => !k.toLowerCase().startsWith(q) && k.toLowerCase().includes(q))];
+}
+function sugHide(){ $("sug").hidden = true; }
+function sugShow(){
+  const m = matches($("city").value), box = $("sug");
+  if (!m.length) { box.innerHTML = '<div class="muted" style="padding:10px 12px">No city matches. Check the spelling.</div>'; box.hidden = false; return; }
+  box.innerHTML = m.map(n => `<button type="button" role="option" data-city="${esc(n)}"><span>${esc(n)}</span><span class="muted">${T(F2C(SNAP[n].curF))} · ${esc(SNAP[n].text)}</span></button>`).join("");
+  box.hidden = false;
+}
+function pick(name){ msg(""); S = fromSnap(name); $("city").value = ""; sugHide(); render(); show("dash"); window.scrollTo({top:0}); }
+$("city").addEventListener("input", sugShow);
+$("city").addEventListener("focus", sugShow);
+$("sug").addEventListener("click", e => { const b = e.target.closest("button[data-city]"); if (b) pick(b.dataset.city); });
+document.addEventListener("click", e => { if (!e.target.closest(".search")) sugHide(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") sugHide(); });
+
+let sortBy = "az";
+function buildAll(){
+  const list = Object.keys(SNAP).map(n => ({n, s:SNAP[n]}));
+  list.sort(sortBy === "hot" ? (a, b) => b.s.curF - a.s.curF : sortBy === "rain" ? (a, b) => b.s.pop[0] - a.s.pop[0] : (a, b) => a.n.localeCompare(b.n));
+  $("allgrid").innerHTML = list.map(({n, s}) => `<button class="citybtn" data-city="${esc(n)}">${icon(kindText(s.text), 40)}<span><b>${esc(n)}</b><span class="muted">${esc(s.text)} · rain ${s.pop[0]}%</span></span><span class="ct">${T(F2C(s.curF))}</span></button>`).join("");
+  document.querySelectorAll(".sortb").forEach(b => b.classList.toggle("on", b.dataset.sort === sortBy));
+}
+$("allgrid").addEventListener("click", e => { const b = e.target.closest("button[data-city]"); if (b) pick(b.dataset.city); });
+document.querySelectorAll(".sortb").forEach(b => b.addEventListener("click", () => { sortBy = b.dataset.sort; buildAll(); }));
+
+function applyJson(){
+  let j;
+  try { j = JSON.parse($("json").value); } catch (e) { msg("That isn’t valid JSON. Copy the full response from the API and paste it again."); return; }
+  if (j.list && Array.isArray(j.list)) {
+    const g = {};
+    j.list.forEach(it => {
+      const k = (it.dt_txt || new Date(it.dt * 1000).toISOString()).slice(0, 10);
+      const o = g[k] = g[k] || {hi:-99, lo:99, pop:0};
+      o.hi = Math.max(o.hi, it.main.temp_max ?? it.main.temp); o.lo = Math.min(o.lo, it.main.temp_min ?? it.main.temp);
+      o.pop = Math.max(o.pop, (it.pop || 0) * 100);
+    });
+    S = {...S, days:Object.entries(g).map(([k, o]) => ({date:new Date(k + "T00:00:00"), ...o})),
+      name:(j.city && j.city.name) || S.name, country:(j.city && j.city.country) || S.country, source:"Source: pasted OpenWeather forecast JSON."};
+  } else if (j.main && j.weather) {
+    S = {...S, name:j.name || S.name, country:(j.sys && j.sys.country) || "", cur:j.main.temp, text:j.weather[0].description || j.weather[0].main,
+      humidity:j.main.humidity ?? null, wind:j.wind ? j.wind.speed * 3.6 : null,
+      days:S.name === j.name ? S.days : [], source:"Source: pasted OpenWeather current-weather JSON (metric units)."};
+  } else { msg("I couldn’t find weather data in that JSON. Use the response from /weather or /forecast."); return; }
+  msg(""); render(); show("dash");
+}
+$("apply").addEventListener("click", applyJson);
+$("example").addEventListener("click", () => {
+  $("json").value = JSON.stringify({name:"Chennai", sys:{country:"IN"}, main:{temp:31.2, humidity:66}, wind:{speed:4.1}, weather:[{main:"Clouds", description:"scattered clouds"}]}, null, 2);
+});
+
+function show(v){
+  if (v === "all") buildAll();
+  document.querySelectorAll(".view").forEach(s => s.classList.toggle("on", s.id === "v-" + v));
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
+}
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => { msg(""); show(b.dataset.view); }));
+$("unit").addEventListener("click", () => { unit = unit === "C" ? "F" : "C"; render(); buildAll(); });
+$("theme").addEventListener("click", () => {
+  const r = document.documentElement, dark = r.dataset.theme === "dark";
+  r.dataset.theme = dark ? "light" : "dark"; $("theme").textContent = dark ? "Dark mode" : "Light mode";
+});
+render();
+</script>
+</body>
+</html>
